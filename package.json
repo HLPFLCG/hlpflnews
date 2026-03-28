@@ -1,0 +1,19 @@
+{
+  "name": "hlpflnews",
+  "version": "1.0.0",
+  "description": "A standalone, client-side trading news dashboard that aggregates 17 live RSS feeds across 6 categories. Zero server required — just open `index.html` in any browser.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:46359/git/HLPFLCG/hlpflnews"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "wrangler": "^4.78.0"
+  }
+}
