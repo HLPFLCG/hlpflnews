@@ -8,6 +8,7 @@ import StatusBar from '@/components/trading/StatusBar';
 import MarketFlash from '@/components/trading/MarketFlash';
 import EconomicCalendar from '@/components/trading/EconomicCalendar';
 import RssColumns from '@/components/trading/RssColumns';
+import SettingsPanel from '@/components/trading/SettingsPanel';
 import { usePrices } from '@/hooks/usePrices';
 import { useFinnhub } from '@/hooks/useFinnhub';
 import { useEconomicCalendar } from '@/hooks/useEconomicCalendar';
@@ -95,6 +96,18 @@ export default function TradingPage() {
   const handleFilterChange = useCallback((filter: string) => {
     setActiveFilter(filter);
     const updated = { ...storage, filter };
+    setStorage(updated);
+    saveStorage(updated);
+  }, [storage]);
+
+  const handleUpdateStorage = useCallback((partial: Partial<StorageSchema>) => {
+    const updated = { ...storage, ...partial } as StorageSchema;
+    // Deep merge for nested objects
+    if (partial.keys) updated.keys = { ...storage.keys, ...partial.keys };
+    if (partial.layout) updated.layout = { ...storage.layout, ...partial.layout };
+    if (partial.intervals) updated.intervals = { ...storage.intervals, ...partial.intervals };
+    if (partial.account) updated.account = { ...storage.account, ...partial.account };
+    if (partial.alerts) updated.alerts = { ...storage.alerts, ...partial.alerts };
     setStorage(updated);
     saveStorage(updated);
   }, [storage]);
@@ -241,6 +254,15 @@ export default function TradingPage() {
       >
         FOCUS
       </button>
+
+      {/* Settings Panel */}
+      <SettingsPanel
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        storage={storage}
+        onUpdate={handleUpdateStorage}
+        feeds={feeds}
+      />
 
       {/* Debug Console */}
       {debugMode && (
