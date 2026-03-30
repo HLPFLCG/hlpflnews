@@ -10,10 +10,12 @@ import EconomicCalendar from '@/components/trading/EconomicCalendar';
 import RssColumns from '@/components/trading/RssColumns';
 import SettingsPanel from '@/components/trading/SettingsPanel';
 import SetupModal from '@/components/trading/SetupModal';
+import TradovatePanel from '@/components/trading/TradovatePanel';
 import { usePrices } from '@/hooks/usePrices';
 import { useFinnhub } from '@/hooks/useFinnhub';
 import { useEconomicCalendar } from '@/hooks/useEconomicCalendar';
 import { useRssFeeds } from '@/hooks/useRssFeeds';
+import { useTradovate } from '@/hooks/useTradovate';
 import { loadStorage, saveStorage } from '@/lib/storage';
 import { FEED_DEFS } from '@/lib/feedDefs';
 import { StorageSchema, FeedDef } from '@/types/trading';
@@ -44,6 +46,19 @@ export default function TradingPage() {
     feeds,
     storage.keys.rss2json,
     storage.intervals.rssMinutes,
+  );
+
+  const { state: tvState, accountState: tvAccount, error: tvError } = useTradovate(
+    {
+      user: storage.keys.tradovate_user,
+      pass: storage.keys.tradovate_pass,
+      cid: storage.keys.tradovate_cid,
+      did: storage.keys.tradovate_did,
+      secret: storage.keys.tradovate_secret,
+      accountId: storage.keys.tradovate_account_id,
+    },
+    storage.account.pdll,
+    storage.account.trailingDD,
   );
   const [debugMode, setDebugMode] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
@@ -135,7 +150,7 @@ export default function TradingPage() {
         tiles={tiles}
         flashing={flashing}
         accountTrailingDD={storage.account.trailingDD}
-        accountDailyPnL={0}
+        accountDailyPnL={tvAccount.dailyPnL}
       />
 
       {/* Row 3: Filter Bar (hidden in focus mode) */}
@@ -199,6 +214,13 @@ export default function TradingPage() {
                 onOpenSettings={() => setSettingsOpen(true)}
               />
             </div>
+
+            {/* Tradovate Panel */}
+            <TradovatePanel
+              state={tvState}
+              accountState={tvAccount}
+              error={tvError}
+            />
           </div>
         )}
 
