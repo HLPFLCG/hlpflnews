@@ -9,6 +9,7 @@ import MarketFlash from '@/components/trading/MarketFlash';
 import EconomicCalendar from '@/components/trading/EconomicCalendar';
 import RssColumns from '@/components/trading/RssColumns';
 import SettingsPanel from '@/components/trading/SettingsPanel';
+import SetupModal from '@/components/trading/SetupModal';
 import { usePrices } from '@/hooks/usePrices';
 import { useFinnhub } from '@/hooks/useFinnhub';
 import { useEconomicCalendar } from '@/hooks/useEconomicCalendar';
@@ -254,6 +255,11 @@ export default function TradingPage() {
       >
         FOCUS
       </button>
+
+      {/* Setup Modal (first run) */}
+      {!storage.setup_done && (
+        <SetupModal onComplete={(updates) => handleUpdateStorage({ ...updates, setup_done: true })} />
+      )}
 
       {/* Settings Panel */}
       <SettingsPanel
