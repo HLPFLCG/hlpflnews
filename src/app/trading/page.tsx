@@ -7,11 +7,14 @@ import FilterBar from '@/components/trading/FilterBar';
 import StatusBar from '@/components/trading/StatusBar';
 import MarketFlash from '@/components/trading/MarketFlash';
 import EconomicCalendar from '@/components/trading/EconomicCalendar';
+import RssColumns from '@/components/trading/RssColumns';
 import { usePrices } from '@/hooks/usePrices';
 import { useFinnhub } from '@/hooks/useFinnhub';
 import { useEconomicCalendar } from '@/hooks/useEconomicCalendar';
+import { useRssFeeds } from '@/hooks/useRssFeeds';
 import { loadStorage, saveStorage } from '@/lib/storage';
-import { StorageSchema } from '@/types/trading';
+import { FEED_DEFS } from '@/lib/feedDefs';
+import { StorageSchema, FeedDef } from '@/types/trading';
 
 export default function TradingPage() {
   const { tiles, flashing, lastFetch, refreshPrices } = usePrices();
@@ -28,7 +31,18 @@ export default function TradingPage() {
     storage.alerts.tiers,
   );
   const { events } = useEconomicCalendar(storage.keys.finnhub);
-  const [lastRssFetch, setLastRssFetch] = useState(0);
+
+  // Build active feed list from defaults + storage overrides
+  const feeds: FeedDef[] = FEED_DEFS.map((def) => {
+    const override = storage.feeds.find((f) => f.id === def.id);
+    return override ? { ...def, on: override.on } : def;
+  });
+
+  const { feedResults, lastFetch: lastRssFetch, loading: rssLoading } = useRssFeeds(
+    feeds,
+    storage.keys.rss2json,
+    storage.intervals.rssMinutes,
+  );
   const [debugMode, setDebugMode] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
 
@@ -85,7 +99,8 @@ export default function TradingPage() {
     saveStorage(updated);
   }, [storage]);
 
-  const feedCount = storage.feeds.filter((f) => f.on).length || 0;
+  const feedCount = feeds.filter((f) => f.on).length;
+  const totalItems = Object.values(feedResults).reduce((sum, r) => sum + (r.items?.length || 0), 0);
 
   return (
     <div
@@ -129,21 +144,16 @@ export default function TradingPage() {
           minHeight: 0,
         }}
       >
-        {/* Left: RSS columns placeholder */}
+        {/* Left: RSS columns */}
         {!focusMode && (
-          <div
-            className="flex items-center justify-center"
-            style={{ overflow: 'hidden', color: 'var(--cream-3)' }}
-          >
-            <div className="text-center">
-              <div className="font-display text-[28px] tracking-[0.12em] uppercase" style={{ color: 'var(--gold)' }}>
-                HLPFL INTEL FEED
-              </div>
-              <div className="font-body text-[13px] mt-2" style={{ color: 'var(--cream-2)' }}>
-                Loading feeds...
-              </div>
-            </div>
-          </div>
+          <RssColumns
+            feeds={feeds}
+            feedResults={feedResults}
+            loading={rssLoading}
+            searchQuery={searchQuery}
+            activeFilter={activeFilter}
+            view={storage.layout.view}
+          />
         )}
 
         {/* Right: Flash + Calendar panel */}
@@ -210,7 +220,7 @@ export default function TradingPage() {
           lastFlashFetch={lastFlashFetch}
           lastRssFetch={lastRssFetch}
           feedCount={feedCount}
-          itemCount={flashItems.length}
+          itemCount={totalItems + flashItems.length}
           priceIntervalSec={storage.intervals.priceSeconds}
           flashIntervalSec={storage.intervals.flashSeconds}
           rssIntervalMin={storage.intervals.rssMinutes}
