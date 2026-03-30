@@ -5,9 +5,11 @@ import AlertBar from '@/components/trading/AlertBar';
 import PriceTicker from '@/components/trading/PriceTicker';
 import FilterBar from '@/components/trading/FilterBar';
 import StatusBar from '@/components/trading/StatusBar';
+import MarketFlash from '@/components/trading/MarketFlash';
 import { usePrices } from '@/hooks/usePrices';
+import { useFinnhub } from '@/hooks/useFinnhub';
 import { loadStorage, saveStorage } from '@/lib/storage';
-import { EconEvent, NewsItem, StorageSchema } from '@/types/trading';
+import { EconEvent, StorageSchema } from '@/types/trading';
 
 export default function TradingPage() {
   const { tiles, flashing, lastFetch, refreshPrices } = usePrices();
@@ -18,9 +20,13 @@ export default function TradingPage() {
   const [focusMode, setFocusMode] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
-  const [lastFlashFetch, setLastFlashFetch] = useState(0);
+  const { newsItems: flashItems, lastFetch: lastFlashFetch } = useFinnhub(
+    storage.keys.finnhub,
+    storage.intervals.flashSeconds,
+    storage.alerts.sound,
+    storage.alerts.tiers,
+  );
   const [lastRssFetch, setLastRssFetch] = useState(0);
-  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [debugMode, setDebugMode] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
 
@@ -149,15 +155,12 @@ export default function TradingPage() {
               flexDirection: 'column',
             }}
           >
-            {/* Market Flash placeholder */}
-            <div className="flex-1 flex items-center justify-center p-4" style={{ color: 'var(--cream-3)' }}>
-              <div className="text-center">
-                <div className="font-display text-[13px] tracking-[0.12em] uppercase" style={{ color: 'var(--gold)' }}>
-                  MARKET FLASH
-                </div>
-                <div className="font-body text-[11px] mt-2">Loading...</div>
-              </div>
-            </div>
+            {/* Market Flash */}
+            <MarketFlash
+              items={flashItems}
+              onOpenSettings={() => setSettingsOpen(true)}
+              finnhubKey={storage.keys.finnhub}
+            />
 
             {/* Divider */}
             <div style={{ height: '1px', background: 'var(--void-4)' }} />
@@ -206,7 +209,7 @@ export default function TradingPage() {
           lastFlashFetch={lastFlashFetch}
           lastRssFetch={lastRssFetch}
           feedCount={feedCount}
-          itemCount={newsItems.length}
+          itemCount={flashItems.length}
           priceIntervalSec={storage.intervals.priceSeconds}
           flashIntervalSec={storage.intervals.flashSeconds}
           rssIntervalMin={storage.intervals.rssMinutes}
