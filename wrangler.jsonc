@@ -1,5 +1,5 @@
 {
 	"name": "hlpflnews",
 	"compatibility_date": "2025-06-05",
-	"assets": { "directory": "./public" }
+	"assets": { "directory": "./out" }
 }

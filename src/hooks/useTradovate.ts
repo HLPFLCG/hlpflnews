@@ -96,6 +96,7 @@ export function useTradovate(
       setState('error');
       setError(e?.message || 'Auth failed');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config, isConfigured]);
 
   const connectMdWs = useCallback(() => {
