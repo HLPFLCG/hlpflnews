@@ -6,14 +6,15 @@ import PriceTicker from '@/components/trading/PriceTicker';
 import FilterBar from '@/components/trading/FilterBar';
 import StatusBar from '@/components/trading/StatusBar';
 import MarketFlash from '@/components/trading/MarketFlash';
+import EconomicCalendar from '@/components/trading/EconomicCalendar';
 import { usePrices } from '@/hooks/usePrices';
 import { useFinnhub } from '@/hooks/useFinnhub';
+import { useEconomicCalendar } from '@/hooks/useEconomicCalendar';
 import { loadStorage, saveStorage } from '@/lib/storage';
-import { EconEvent, StorageSchema } from '@/types/trading';
+import { StorageSchema } from '@/types/trading';
 
 export default function TradingPage() {
   const { tiles, flashing, lastFetch, refreshPrices } = usePrices();
-  const [events, setEvents] = useState<EconEvent[]>([]);
   const [storage, setStorage] = useState<StorageSchema>(() => loadStorage());
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,6 +27,7 @@ export default function TradingPage() {
     storage.alerts.sound,
     storage.alerts.tiers,
   );
+  const { events } = useEconomicCalendar(storage.keys.finnhub);
   const [lastRssFetch, setLastRssFetch] = useState(0);
   const [debugMode, setDebugMode] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
@@ -165,14 +167,13 @@ export default function TradingPage() {
             {/* Divider */}
             <div style={{ height: '1px', background: 'var(--void-4)' }} />
 
-            {/* Calendar placeholder */}
-            <div id="calendar-section" className="flex-1 flex items-center justify-center p-4" style={{ color: 'var(--cream-3)' }}>
-              <div className="text-center">
-                <div className="font-display text-[13px] tracking-[0.12em] uppercase" style={{ color: 'var(--gold)' }}>
-                  TODAY&apos;S EVENTS
-                </div>
-                <div className="font-body text-[11px] mt-2">Loading...</div>
-              </div>
+            {/* Economic Calendar */}
+            <div id="calendar-section">
+              <EconomicCalendar
+                events={events}
+                finnhubKey={storage.keys.finnhub}
+                onOpenSettings={() => setSettingsOpen(true)}
+              />
             </div>
           </div>
         )}
